@@ -29,50 +29,50 @@ namespace Terminal.Managers
         //Log("Введите количество последних месяцев для обработки (0, если указаны годы):");
         //int months = int.Parse(Console.ReadLine() ?? "0");
 
-        public async Task<List<MyKline>> AggregateKlinesAsync(List<MyKline> minuteKlines, int interval)
-        {
-            try
-            {
-                // Загрузка минутных свечей
-                Console.WriteLine($"Загружено {minuteKlines.Count} минутных свечей.");
+        //public List<MyKline> AggregateKlines(List<MyKline> minuteKlines, int interval)
+        //{
+        //    try
+        //    {
+        //        // Загрузка минутных свечей
+        //        Console.WriteLine($"Загружено {minuteKlines.Count} минутных свечей.");
 
-                var lastKline1 = minuteKlines[^1]; // Получаем последнюю минутную свечу
-                var lastKline2 = minuteKlines[^2]; // Получаем последнюю минутную свечу
-                var lastKline3 = minuteKlines[^3]; // Получаем последнюю минутную свечу
-                var lastKline4 = minuteKlines[^4]; // Получаем последнюю минутную свечу
-                var lastKline5 = minuteKlines[^5]; // Получаем последнюю минутную свечу
+        //        var lastKline1 = minuteKlines[^1]; // Получаем последнюю минутную свечу
+        //        var lastKline2 = minuteKlines[^2]; // Получаем последнюю минутную свечу
+        //        var lastKline3 = minuteKlines[^3]; // Получаем последнюю минутную свечу
+        //        var lastKline4 = minuteKlines[^4]; // Получаем последнюю минутную свечу
+        //        var lastKline5 = minuteKlines[^5]; // Получаем последнюю минутную свечу
 
-                Console.WriteLine($"1: openTime:{lastKline1.OpenTime}, open: {lastKline1.OpenPrice}, close: {lastKline1.ClosePrice}");
-                Console.WriteLine($"2: openTime:{lastKline2.OpenTime}, open: {lastKline2.OpenPrice}, close: {lastKline2.ClosePrice}");
-                Console.WriteLine($"3: openTime:{lastKline3.OpenTime}, open: {lastKline3.OpenPrice}, close: {lastKline3.ClosePrice}");
-                Console.WriteLine($"4: openTime:{lastKline4.OpenTime}, open: {lastKline4.OpenPrice}, close: {lastKline4.ClosePrice}");
-                Console.WriteLine($"5: openTime:{lastKline5.OpenTime}, open: {lastKline5.OpenPrice}, close: {lastKline5.ClosePrice}");
-                Console.WriteLine();
-                // Агрегация свечей
-                var aggregatedKlines = AggregateKlines(minuteKlines, interval);
-                var newLast = aggregatedKlines[^1];
-                var newLast2 = aggregatedKlines[^2];
-                Console.WriteLine($"1: openTime:{newLast.OpenTime}, open: {newLast.OpenPrice}, close: {newLast.ClosePrice}");
-                Console.WriteLine($"2: openTime:{newLast2.OpenTime}, open: {newLast2.OpenPrice}, close: {newLast2.ClosePrice}");
+        //        Console.WriteLine($"1: openTime:{lastKline1.OpenTime}, open: {lastKline1.OpenPrice}, close: {lastKline1.ClosePrice}");
+        //        Console.WriteLine($"2: openTime:{lastKline2.OpenTime}, open: {lastKline2.OpenPrice}, close: {lastKline2.ClosePrice}");
+        //        Console.WriteLine($"3: openTime:{lastKline3.OpenTime}, open: {lastKline3.OpenPrice}, close: {lastKline3.ClosePrice}");
+        //        Console.WriteLine($"4: openTime:{lastKline4.OpenTime}, open: {lastKline4.OpenPrice}, close: {lastKline4.ClosePrice}");
+        //        Console.WriteLine($"5: openTime:{lastKline5.OpenTime}, open: {lastKline5.OpenPrice}, close: {lastKline5.ClosePrice}");
+        //        Console.WriteLine();
+        //        // Агрегация свечей
+        //        var aggregatedKlines = AggregateKlines(minuteKlines, interval);
+        //        var newLast = aggregatedKlines[^1];
+        //        var newLast2 = aggregatedKlines[^2];
+        //        Console.WriteLine($"1: openTime:{newLast.OpenTime}, open: {newLast.OpenPrice}, close: {newLast.ClosePrice}");
+        //        Console.WriteLine($"2: openTime:{newLast2.OpenTime}, open: {newLast2.OpenPrice}, close: {newLast2.ClosePrice}");
 
-                Console.WriteLine();
+        //        Console.WriteLine();
 
-                Console.WriteLine($"Сформировано {aggregatedKlines.Count} свечей с интервалом {interval} минут.");
+        //        Console.WriteLine($"Сформировано {aggregatedKlines.Count} свечей с интервалом {interval} минут.");
 
-                // Вывод примера
-                foreach (var kline in aggregatedKlines.Take(5)) // Вывод первых 5 свечей
-                {
-                    Console.WriteLine($"OpenTime: {kline.OpenTime}, CloseTime: {kline.CloseTime}, OpenPrice: {kline.OpenPrice}, ClosePrice: {kline.ClosePrice}, HighPrice: {kline.HighPrice}, LowPrice: {kline.LowPrice}, Volume: {kline.Volume}");
-                }
+        //        // Вывод примера
+        //        foreach (var kline in aggregatedKlines.Take(5)) // Вывод первых 5 свечей
+        //        {
+        //            Console.WriteLine($"OpenTime: {kline.OpenTime}, CloseTime: {kline.CloseTime}, OpenPrice: {kline.OpenPrice}, ClosePrice: {kline.ClosePrice}, HighPrice: {kline.HighPrice}, LowPrice: {kline.LowPrice}, Volume: {kline.Volume}");
+        //        }
 
-                return aggregatedKlines;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ошибка: {ex.Message}");
-                return new List<MyKline>();
-            }
-        }
+        //        return aggregatedKlines;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"Ошибка: {ex.Message}");
+        //        return new List<MyKline>();
+        //    }
+        //}
 
         public async Task<List<MyKline>> LoadAndAggregateKlinesAsync(string filePath, int interval)
         {
@@ -121,9 +121,7 @@ namespace Terminal.Managers
             }
         }
 
-
-
-        private List<MyKline> AggregateKlines(List<MyKline> minuteKlines, int interval)
+        public List<MyKline> AggregateKlines(List<MyKline> minuteKlines, int interval)
         {
             if (minuteKlines == null || minuteKlines.Count == 0)
             {
