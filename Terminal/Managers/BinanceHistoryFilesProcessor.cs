@@ -17,8 +17,8 @@ namespace Terminal.Managers
 {
     public class BinanceHistoryFilesProcessor
     {
-        private static readonly ConcurrentDictionary<string, ConcurrentDictionary<DateTime, MyKline>> Cache = new();
-        private ConcurrentDictionary<DateTime, MyKline> allKlines = new ConcurrentDictionary<DateTime, MyKline>();
+        private static readonly ConcurrentDictionary<string, ConcurrentDictionary<DateTime, HistoryKline>> Cache = new();
+        private ConcurrentDictionary<DateTime, HistoryKline> allKlines = new ConcurrentDictionary<DateTime, HistoryKline>();
         private ConcurrentBag<string> logResults = new ConcurrentBag<string>();
         private SemaphoreSlim semaphore = new SemaphoreSlim(10); // Ограничение на 10 параллельных задач
 
@@ -74,7 +74,17 @@ namespace Terminal.Managers
         //    }
         //}
 
-        public async Task<List<MyKline>> LoadAndAggregateKlinesAsync(string filePath, int interval)
+
+        public async Task<List<HistoryKline>> LoadKlinesFromPathAsync(string filePath)
+        {
+            // Загрузка минутных свечей
+            var result = await LoadAllKlinesAsync(filePath);
+            var minuteKlines = result.Values.OrderByDescending(x => x.OpenTime).ToList();
+            Console.WriteLine($"Загружено {minuteKlines.Count} минутных свечей.");
+            return minuteKlines;
+        }
+
+        public async Task<List<HistoryKline>> LoadAndAggregateKlinesAsync(string filePath, int interval)
         {
             try
             {
@@ -117,11 +127,11 @@ namespace Terminal.Managers
             catch (Exception ex)
             {
                 Console.WriteLine($"Ошибка: {ex.Message}");
-                return new List<MyKline>();
+                return new List<HistoryKline>();
             }
         }
 
-        public List<MyKline> AggregateKlines(List<MyKline> minuteKlines, int interval)
+        public List<HistoryKline> AggregateKlines(List<HistoryKline> minuteKlines, int interval)
         {
             if (minuteKlines == null || minuteKlines.Count == 0)
             {
@@ -133,7 +143,7 @@ namespace Terminal.Managers
                 throw new ArgumentException("Интервал должен быть больше 0.");
             }
 
-            var aggregatedKlines = new List<MyKline>();
+            var aggregatedKlines = new List<HistoryKline>();
 
             // Разворачиваем список минутных свечей для обработки с самых дальних по дате
             //var reversedKlines = minuteKlines.OrderByDescending(k => k.OpenTime).ToList();
@@ -145,7 +155,7 @@ namespace Terminal.Managers
                 var group = reversedKlines.Skip(i).Take(interval).ToList();
 
                 // Формируем новую свечу даже если группа меньше интервала
-                var aggregatedKline = new MyKline
+                var aggregatedKline = new HistoryKline
                 {
                     OpenTime = group.Last().OpenTime, // Время открытия первой свечи в группе (самая дальняя по дате)
                     OpenPrice = group.Last().OpenPrice, // Цена открытия первой свечи в группе
@@ -166,7 +176,7 @@ namespace Terminal.Managers
             return aggregatedKlines;
         }
 
-        private async Task<ConcurrentDictionary<DateTime, MyKline>> LoadAllKlinesAsync(string filePath)
+        private async Task<ConcurrentDictionary<DateTime, HistoryKline>> LoadAllKlinesAsync(string filePath)
         {
             if (!File.Exists(filePath))
             {
@@ -174,7 +184,7 @@ namespace Terminal.Managers
             }
 
             await using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 81920, useAsync: true);
-            var allKlines = await MessagePack.MessagePackSerializer.DeserializeAsync<ConcurrentDictionary<DateTime, MyKline>>(fileStream);
+            var allKlines = await MessagePack.MessagePackSerializer.DeserializeAsync<ConcurrentDictionary<DateTime, HistoryKline>>(fileStream);
             return allKlines;
         }
 
@@ -312,7 +322,7 @@ namespace Terminal.Managers
                 }
 
                 // Преобразование CSV в коллекцию объектов и добавление в словарь
-                List<MyKline> klines = await ParseCsvToKlinesAsync(csvFilePath);
+                List<HistoryKline> klines = await ParseCsvToKlinesAsync(csvFilePath);
 
                 foreach (var kline in klines)
                 {
@@ -351,9 +361,9 @@ namespace Terminal.Managers
             });
         }
 
-        private async Task<List<MyKline>> ParseCsvToKlinesAsync(string csvFilePath)
+        private async Task<List<HistoryKline>> ParseCsvToKlinesAsync(string csvFilePath)
         {
-            var klines = new ConcurrentBag<MyKline>();
+            var klines = new ConcurrentBag<HistoryKline>();
 
             // Чтение файла с использованием буферизации
             var lines = await File.ReadAllLinesAsync(csvFilePath);
@@ -372,7 +382,7 @@ namespace Terminal.Managers
                     }
 
                     // Преобразуем данные в объект Kline
-                    var kline = new MyKline
+                    var kline = new HistoryKline
                     {
                         OpenTime = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(columns[0])).DateTime,
                         OpenPrice = decimal.Parse(columns[1], CultureInfo.InvariantCulture),
@@ -497,7 +507,7 @@ namespace Terminal.Managers
             }
         }
 
-        private async Task<ConcurrentDictionary<DateTime, MyKline>> LoadFromMessagePackAsync(string folderPath, string coinName)
+        private async Task<ConcurrentDictionary<DateTime, HistoryKline>> LoadFromMessagePackAsync(string folderPath, string coinName)
         {
             var stopwatch = Stopwatch.StartNew();
 
@@ -517,14 +527,14 @@ namespace Terminal.Managers
             {
                 stopwatch.Stop();
                 Log($"Файл не найден. Время выполнения: {stopwatch.ElapsedMilliseconds} мс");
-                return new ConcurrentDictionary<DateTime, MyKline>();
+                return new ConcurrentDictionary<DateTime, HistoryKline>();
             }
 
             try
             {
                 // Чтение файла с увеличенным буфером
                 await using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 131072, useAsync: true);
-                var data = await MessagePack.MessagePackSerializer.DeserializeAsync<ConcurrentDictionary<DateTime, MyKline>>(fileStream);
+                var data = await MessagePack.MessagePackSerializer.DeserializeAsync<ConcurrentDictionary<DateTime, HistoryKline>>(fileStream);
 
                 // Кэширование данных
                 Cache[filePath] = data;
@@ -537,10 +547,10 @@ namespace Terminal.Managers
             {
                 stopwatch.Stop();
                 Log($"Ошибка при загрузке MessagePack-файла: {ex.Message}. Время выполнения: {stopwatch.ElapsedMilliseconds} мс");
-                return new ConcurrentDictionary<DateTime, MyKline>();
+                return new ConcurrentDictionary<DateTime, HistoryKline>();
             }
         }
-        private async Task SaveToMessagePackAsync(ConcurrentDictionary<DateTime, MyKline> klines, string folderPath, string coinName)
+        private async Task SaveToMessagePackAsync(ConcurrentDictionary<DateTime, HistoryKline> klines, string folderPath, string coinName)
         {
             string filePath = Path.Combine(folderPath, $"{coinName}_all_data.msgpack");
 

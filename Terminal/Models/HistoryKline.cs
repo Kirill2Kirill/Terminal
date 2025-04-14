@@ -3,8 +3,11 @@ using Binance.Net.Interfaces;
 
 namespace Terminal.Models
 {
+    /// <summary>
+    /// Собственный класс нужен для того, чтобы были ключи к сохранению в MessagePack для скорости
+    /// </summary>
     [MessagePackObject]
-    public class MyKline : IBinanceKline
+    public class HistoryKline : IBinanceKline
     {
         [Key(0)]
         public DateTime OpenTime { get; set; }

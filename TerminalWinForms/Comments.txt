@@ -1,0 +1,72 @@
+﻿1) Хранить и List<MyKline> и List<OHLC>. Чтобы можно было по индексу получаmь значения MyKline
+2) MisceSxroll должен масштабировать только ось Х, подстраиваясь под максимальный размер свечей и 10 %
+3) Оставлять справка на место для 10 баров
+4) Кнопка в начальное положение Х и У
+5) КНопка отобразить так Х, чтоб справа было 10 пустых баров
+6) трейдингвью всегда делает 10 пустых баров справа, пока ымшкой не стал кликать по графику. 
+   Т.Е. после клика у нас перестает работать метод оставлять 10 баров справа
+7) кнопка Y стандартное положение (10 % к размерам свечей на графике)
+8) кроссхаир _ лейбл на нем с датой и ценой
+9) ТВ показывает где-то 150 свечей в начале
+10) Custom Rught-CLick ContextMenu из DEMO
+11) Кнопки вправ-влево для передвижения по графику по барам CUsom Mouse Buttons из DEMO
+13) Data Logget SLide из ДЕМО, так график двигается как надо при пополнении
+13) Data Streamer Scroll из ДЕМО, так график двигается как надо при пополнении
+14) Live FInancial Plot из ДЕМО
+15) PersistingPlot из ДЕМО для запомиания состояния графика
+15) SelectDataPoint из ДЕМО для отрисвоки квдрата с шифтом для дистанции измерения candlestickPlot.Data.GetPriceRange
+16) максиальное приближение должно быть так чтобы помещались две свечи
+
+17) сделать проверку на наличие новых версия Jkorf
+   
+    private readonly object _lock = new object();
+    private readonly List<MyKline> _klines = new List<MyKline>();
+
+    // Добавление нового элемента в конец
+    public void AddKline(MyKline kline)
+    {
+        lock (_lock)
+        {
+            _klines.Add(kline);
+        }
+    }
+
+    // Изменение ClosePrice последнего элемента
+    public void UpdateLastKlineClosePrice(decimal newClosePrice)
+    {
+        lock (_lock)
+        {
+            if (_klines.Count > 0)
+            {
+                _klines[^1].ClosePrice = newClosePrice; // ^1 - индекс последнего элемента
+            }
+        }
+    }
+
+    // Получение копии коллекции для чтения
+    public List<MyKline> GetKlines()
+    {
+        lock (_lock)
+        {
+            return new List<MyKline>(_klines); // Возвращаем копию для безопасного чтения
+        }
+    }
+
+    // Получение последнего элемента
+    public MyKline? GetLastKline()
+    {
+        lock (_lock)
+        {
+            return _klines.Count > 0 ? _klines[^1] : null;
+        }
+    }
+
+    // Получение нужного элемента
+    public MyKline? GetKline(int index)
+    {
+        lock (_lock)
+        {
+            return _klines.Count > index ? _klines[index] : null;
+        }
+    }
+}
