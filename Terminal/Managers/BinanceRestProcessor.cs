@@ -74,9 +74,9 @@ namespace Terminal.Managers
         }
 
         // Метод для получения свечей с выбором таймфрейма и диапазона дат
-        public async Task<List<object>> GetKlinesAsync(string symbol, KlineInterval interval, DateTime startTime, DateTime endTime)
+        public async Task<List<IBinanceKline>> GetKlinesAsync(string symbol, KlineInterval interval, DateTime startTime, DateTime endTime)
         {
-            var allKlines = new List<object>();
+            var allKlines = new List<IBinanceKline>();
             DateTime currentStartTime = startTime;
             var cancellationToken = _cancellationTokenSource.Token;
 

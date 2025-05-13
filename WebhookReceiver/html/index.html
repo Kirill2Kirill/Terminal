@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>Управление сервером</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        :root {
+            --bg-color: #f4f7fa;
+            --text-color: #2c3e50;
+            --card-bg: #ffffff;
+            --button-bg: #3498db;
+            --button-hover: #2980b9;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1e1e2f;
+                --text-color: #f0f0f0;
+                --card-bg: #2b2b40;
+                --button-bg: #3b82f6;
+                --button-hover: #2563eb;
+                --shadow-color: rgba(0, 0, 0, 0.4);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 12px 30px var(--shadow-color);
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        h1 {
+            font-size: 30px;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .button {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 500;
+            color: white;
+            background-color: var(--button-bg);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+            .button:hover {
+                background-color: var(--button-hover);
+                transform: scale(1.03);
+            }
+
+            .button:active {
+                transform: scale(0.98);
+            }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚙️ Управление сервером</h1>
+
+        <form method="post" action="all_logs">
+            <button class="button">📜 Общие логи</button>
+        </form>
+
+        <form method="post" action="users">
+            <button class="button">👤 Пользователи</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -24,7 +24,6 @@ namespace Terminal.Managers
         private KlineInterval _lastInterval;
         private string _lastSymbol;
 
-
         private BinanceMarketType _marketType;
         private UpdateSubscription _subscription;
 
@@ -39,22 +38,25 @@ namespace Terminal.Managers
             // Устанавливаем глобальные настройки для BinanceSocketClient
             BinanceSocketClient.SetDefaultOptions(options =>
             {
-                options.ApiCredentials = new ApiCredentials("APIKEY", "APISECRET"); // Укажите свои API-ключи
+                // Укажите свои API-ключи
+                options.ApiCredentials = new ApiCredentials("APIKEY", "APISECRET");
             });
 
+            
             // Инициализация клиента BinanceSocketClient
-            _binanceSocketClient = new BinanceSocketClient();
+            //_binanceSocketClient = new BinanceSocketClient();
 
             //_binanceSocketClient.SpotApi.Account.StartUserStreamAsync( r => r.);
-            !!!!!!!!!!!!!!!!!!!!_binanceSocketClient.GetSubscriptionsState();
+            //!!!!!!!!!!!!!!!!!!!!_binanceSocketClient.GetSubscriptionsState();
 
-            _binanceSocketClient.UsdFuturesApi.Trading.
+            //_binanceSocketClient.UsdFuturesApi.Trading.
 
             // Создаем CancellationTokenSource для управления отменой операций
-            _cancellationTokenSource = new CancellationTokenSource();
+            //_cancellationTokenSource = new CancellationTokenSource();
 
             // Настраиваем таймер для периодического Ping
             //_pingTimer = new Timer(async _ => await PingServerAsync(), null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
+
         }
 
         // Асинхронный метод для изменения MarketType

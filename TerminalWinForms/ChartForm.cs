@@ -14,10 +14,12 @@ using Terminal.Models;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 using ScottPlot.TickGenerators.TimeUnits;
 using ScottPlot.TickGenerators;
+using Binance.Net.Interfaces;
+using Terminal.Models.Indicators;
 
 namespace TerminalWinForms
 {
-    public partial class ChartForm: Form
+    public partial class ChartForm : Form
     {
         private readonly FormsPlot formsPlot;
         private OHLC[] ohlcData;
@@ -108,7 +110,7 @@ namespace TerminalWinForms
 
             // Подключаем события для отображения информации о свечах
             formsPlot.MouseMove += MouseMove_Annotation;
-          
+
             // Обновляем график  
             formsPlot.Refresh();
         }
@@ -172,14 +174,21 @@ namespace TerminalWinForms
             //    //formsPlot.Plot.Axes.Rules.Add(rule);
             //}
 
+
+
             // enable continuous autoscaling with a custom action
             formsPlot.Plot.Axes.ContinuouslyAutoscale = true;
             formsPlot.Plot.Axes.ContinuousAutoscaleAction = (RenderPack rp) =>
             {
+
+
+
+                //самостоятельная реализация приближения оси Y
                 AxisLimits limits = formsPlot.Plot.Axes.GetLimits();
                 var xMin = limits.Left;
                 var xMax = limits.Right;
-                var visibleData = ohlcData.Where(c => c.DateTime.ToOADate() >= xMin && c.DateTime.ToOADate() <= xMax).ToArray();
+                //var visibleData = ohlcData.Where(c => c.DateTime.ToOADate() >= xMin && c.DateTime.ToOADate() <= xMax).ToArray();
+                var visibleData = GetVisibleData(xMin, xMax);
 
                 if (visibleData.Length == 0)
                     return;
@@ -191,20 +200,80 @@ namespace TerminalWinForms
                 yMaxNew += paddingY;
                 rp.Plot.Axes.SetLimitsY(yMinNew, yMaxNew);
 
-                double minSpanX = ohlcData[1].DateTime.ToOADate() - ohlcData[0].DateTime.ToOADate();
-                minSpanX *= 2;
-                double currentSpanX = limits.HorizontalSpan;
+                //самостоятельная реализация приближения оси Х
+                //double minSpanX = ohlcData[1].DateTime.ToOADate() - ohlcData[0].DateTime.ToOADate();
+                //minSpanX *= 2;
+                //double currentSpanX = limits.HorizontalSpan;
 
-                if (currentSpanX < minSpanX)
-                {
-                    double centerX = xMin + currentSpanX / 2;
-                    xMin = centerX - minSpanX / 2;
-                    xMax = centerX + minSpanX / 2;
-                }
+                //if (currentSpanX < minSpanX)
+                //{
+                //    double centerX = xMin + currentSpanX / 2;
+                //    xMin = centerX - minSpanX / 2;
+                //    xMax = centerX + minSpanX / 2;
+                //}
 
-                rp.Plot.Axes.SetLimitsX(xMin, xMax);
+                //rp.Plot.Axes.SetLimitsX(xMin, xMax);
             };
+
+            //подсказка с гихаба приближение оси Х, мминус в том, что сттавит минимум и для оси У
+            ScottPlot.AxisRules.MinimumSpan rule = new(
+                xAxis: formsPlot.Plot.Axes.Bottom,
+                yAxis: formsPlot.Plot.Axes.Right,
+                xSpan: 1,
+                ySpan: 1);
+            formsPlot.Plot.Axes.Rules.Clear();
+            formsPlot.Plot.Axes.Rules.Add(rule);
         }
+
+        private OHLC[] GetVisibleData(double xMin, double xMax)
+        {
+            int startIndex = FindFirstIndex(xMin); // бинарный поиск первого индекса с датой >= xMin
+            int endIndex = FindLastIndex(xMax);     // бинарный поиск последнего индекса с датой <= xMax
+            if (startIndex >= ohlcData.Length || endIndex < startIndex)
+                return new OHLC[0];
+            var visible = new OHLC[endIndex - startIndex + 1];
+            Array.Copy(ohlcData, startIndex, visible, 0, visible.Length);
+            return visible;
+        }
+
+        /// <summary>
+        /// Находит первый индекс, такой что ohlcData[index].DateTime >= xMin
+        /// </summary>
+        private int FindFirstIndex(double xMin)
+        {
+            int low = 0;
+            int high = ohlcData.Length - 1;
+            while (low <= high)
+            {
+                int mid = low + (high - low) / 2;
+                double midVal = ohlcData[mid].DateTime.ToOADate();
+                if (midVal < xMin)
+                    low = mid + 1;
+                else
+                    high = mid - 1;
+            }
+            return low; // low - первый индекс с датой >= xMin
+        }
+
+        /// <summary>
+        /// Находит последний индекс, такой что ohlcData[index].DateTime <= xMax
+        /// </summary>
+        private int FindLastIndex(double xMax)
+        {
+            int low = 0;
+            int high = ohlcData.Length - 1;
+            while (low <= high)
+            {
+                int mid = low + (high - low) / 2;
+                double midVal = ohlcData[mid].DateTime.ToOADate();
+                if (midVal > xMax)
+                    high = mid - 1;
+                else
+                    low = mid + 1;
+            }
+            return high; // high - последний индекс с датой <= xMax
+        }
+
 
         private void ShowLastCandles(int visibleCandles)
         {
@@ -242,7 +311,7 @@ namespace TerminalWinForms
             // Обновляем график
             formsPlot.Refresh();
         }
-        
+
         private int FindNearestIndex(double mouseX)
         {
             // Проверяем, есть ли данные для поиска
@@ -251,20 +320,66 @@ namespace TerminalWinForms
                 throw new InvalidOperationException("Нет данных для поиска ближайшего индекса.");
             }
 
-            // Ищем индекс ближайшего бара по X-координате
-            var nearest = ohlcData
-                .Select((ohlc, index) => new { Index = index, Distance = Math.Abs(ohlc.DateTime.ToOADate() - mouseX) })
-                .OrderBy(x => x.Distance)
-                .FirstOrDefault();
+            int lo = 0;
+            int hi = ohlcData.Length - 1;
 
-            if (nearest == null)
+            // Выполняем бинарный поиск, чтобы найти индекс, где значение DateTime (в виде OADate) максимально приближено к mouseX
+            while (lo <= hi)
             {
-                throw new InvalidOperationException("Не удалось найти ближайший индекс.");
+                int mid = lo + (hi - lo) / 2;
+                double midValue = ohlcData[mid].DateTime.ToOADate();
+
+                if (midValue < mouseX)
+                {
+                    lo = mid + 1;
+                }
+                else if (midValue > mouseX)
+                {
+                    hi = mid - 1;
+                }
+                else
+                {
+                    // Точное совпадение найдено
+                    return mid;
+                }
             }
 
-            return nearest.Index;
+            // После цикла lo — первый индекс с датой больше mouseX, а hi — последний индекс с датой меньше mouseX.
+            // Нужно сравнить, какой из них ближе.
+            if (lo >= ohlcData.Length)
+                return hi;
+
+            if (hi < 0)
+                return lo;
+
+            double loDiff = Math.Abs(ohlcData[lo].DateTime.ToOADate() - mouseX);
+            double hiDiff = Math.Abs(mouseX - ohlcData[hi].DateTime.ToOADate());
+
+            return (loDiff < hiDiff) ? lo : hi;
         }
-                
+
+        //private int FindNearestIndex(double mouseX)
+        //{
+        //    // Проверяем, есть ли данные для поиска
+        //    if (ohlcData == null || ohlcData.Length == 0)
+        //    {
+        //        throw new InvalidOperationException("Нет данных для поиска ближайшего индекса.");
+        //    }
+
+        //    // Ищем индекс ближайшего бара по X-координате
+        //    var nearest = ohlcData
+        //        .Select((ohlc, index) => new { Index = index, Distance = Math.Abs(ohlc.DateTime.ToOADate() - mouseX) })
+        //        .OrderBy(x => x.Distance)
+        //        .FirstOrDefault();
+
+        //    if (nearest == null)
+        //    {
+        //        throw new InvalidOperationException("Не удалось найти ближайший индекс.");
+        //    }
+
+        //    return nearest.Index;
+        //}
+
         private string TimeSpanToTimeFrame(TimeSpan timeSpan)
         {
             if (timeSpan.Hours > 0 && timeSpan.Minutes > 0)
@@ -280,6 +395,27 @@ namespace TerminalWinForms
                 return $"{timeSpan.Minutes}MIN";
             }
             return timeSpan.ToString();
+        }
+        public void PlotIndicators(IList<IBinanceKline> klines, IIndicator indicator)
+        {
+            // Рассчитываем индикатор
+            var indicatorValues = indicator.Calculate(klines);
+
+            // Преобразуем даты в массив double (ScottPlot использует OADate)
+            double[] xs = indicatorValues.Keys.Select(dt => dt.ToOADate()).ToArray();
+            double[] ys = indicatorValues.Values.ToArray();
+
+            var plt = new ScottPlot.Plot(600, 400);
+            // Построим график свечей отдельно (для примера можно использовать только индикатор)
+            plt.PlotScatter(xs, ys, label: indicator.Name, markerSize: 0);
+            plt.Legend();
+            plt.Title(indicator.Name);
+            plt.XAxis.DateTimeFormat(true);
+            plt.SaveFig($"{indicator.Name}.png");
+
+            ScottPlot.Finance.SimpleMovingAverage
+
+
         }
     }
 }

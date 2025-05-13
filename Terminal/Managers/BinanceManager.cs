@@ -31,9 +31,9 @@ namespace Terminal.Managers
             // Инициализируем процессоры
             HistoryFilesProcessor = new BinanceHistoryFilesProcessor(BinanceMarketType.Futures);
             RestProcessor = new BinanceRestProcessor(BinanceMarketType.Futures); // По умолчанию Futures
-            SocketProcessor = new BinanceSocketProcessor(_socketClient, BinanceMarketType.Futures); // По умолчанию Futures
-            TradingProcessor = new BinanceTradingProcessor(_socketClient);
-            UserStreamProcessor = new BinanceUserStreamProcessor(_socketClient);
+            //SocketProcessor = new BinanceSocketProcessor(_socketClient, BinanceMarketType.Futures); // По умолчанию Futures
+            //TradingProcessor = new BinanceTradingProcessor(_socketClient);
+            //UserStreamProcessor = new BinanceUserStreamProcessor(_socketClient);
         }
 
         public void Dispose()

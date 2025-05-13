@@ -23,7 +23,7 @@ namespace TerminalWinForms
         {
             InitializeComponent();
 
-            binanceHistoryFilesProcessor = new BinanceHistoryFilesProcessor();
+            binanceHistoryFilesProcessor = new BinanceHistoryFilesProcessor(Terminal.Enums.BinanceMarketType.Futures);
 
             // Добавляем кнопку для вызова ChartForm
             button = new Button

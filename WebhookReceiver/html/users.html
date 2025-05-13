@@ -1,0 +1,200 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <title>Пользователи</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        :root {
+            --bg-color: #f4f7fa;
+            --text-color: #2c3e50;
+            --card-bg: #ffffff;
+            --input-bg: #f9f9f9;
+            --primary-color: #3498db;
+            --primary-hover: #2980b9;
+            --border-color: #d0d0d0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1e1e2e;
+                --text-color: #f0f0f0;
+                --card-bg: #2a2a3b;
+                --input-bg: #353546;
+                --primary-color: #3b82f6;
+                --primary-hover: #2563eb;
+                --border-color: #444;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.6s ease;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h2 {
+            margin-top: 30px;
+            font-size: 20px;
+            color: var(--primary-color);
+        }
+
+        label {
+            font-size: 16px;
+            margin-top: 10px;
+            display: block;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-size: 15px;
+        }
+
+        .button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 17px;
+            font-weight: 500;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+            .button:hover {
+                background-color: var(--primary-hover);
+                transform: scale(1.03);
+            }
+
+        form {
+            margin-top: 20px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👥 Редактирование пользователей</h1>
+
+        <div id="userContainer"></div>
+
+        <button class="button" onclick="saveUsers()">💾 Сохранить изменения</button>
+
+        <form method="post" action="index">
+            <button type="submit" class="button">🏠 На главную</button>
+        </form>
+    </div>
+
+    <script>
+        async function loadUsers() {
+            try {
+                let response = await fetch("/api/users");
+                let users = await response.json();
+                let container = document.getElementById("userContainer");
+
+                users.forEach((user, index) => {
+                    let userDiv = document.createElement("div");
+                    userDiv.innerHTML = `
+                            <h2>Пользователь ${index + 1}</h2>
+                            <label>Имя:</label>
+                            <input type="text" value="${user.name}" data-field="name">
+                            <label>API Key:</label>
+                            <input type="text" value="${user.apiKey}" data-field="apiKey">
+                            <label>Secret Key:</label>
+                            <input type="text" value="${user.secretKey}" data-field="secretKey">
+                            <label>Passphrase:</label>
+                            <input type="text" value="${user.passphrase}" data-field="passphrase">
+                            <label>Hook Key:</label>
+                            <input type="text" value="${user.hookKey}" data-field="hookKey">
+                        `;
+                    container.appendChild(userDiv);
+                });
+            } catch (err) {
+                alert("Ошибка загрузки пользователей.");
+                console.error(err);
+            }
+        }
+
+        async function saveUsers() {
+            let userDivs = document.querySelectorAll("#userContainer div");
+            let updatedUsers = [];
+
+            userDivs.forEach(div => {
+                let inputs = div.querySelectorAll("input");
+                updatedUsers.push({
+                    name: inputs[0].value,
+                    apiKey: inputs[1].value,
+                    secretKey: inputs[2].value,
+                    passphrase: inputs[3].value,
+                    hookKey: inputs[4].value
+                });
+            });
+
+            try {
+                let response = await fetch("/api/updateUsers", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(updatedUsers)
+                });
+
+                if (response.ok) {
+                    alert("Пользователи успешно обновлены!");
+                } else {
+                    alert("Ошибка обновления пользователей.");
+                }
+            } catch (err) {
+                alert("Сервер не отвечает.");
+                console.error(err);
+            }
+        }
+
+        loadUsers();
+    </script>
+</body>
+</html>

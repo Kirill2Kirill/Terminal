@@ -1,0 +1,88 @@
+﻿{
+  "symbol": "{{ticker}}",
+  "hookKey": "**HookKey**",
+  "user": "**Name**",
+  "action": "{{strategy.order.action}}", //buy/sell
+  "marketPosition": "{{strategy.market_position}}",
+  
+  "open": {
+    "enabled": true,
+    "amountType": "sumUsd",
+    "amount": "700",
+    "scaled": {
+      "qty": 2,
+      "price1": {
+        "mode": "ofs",
+        "value": 1
+      },
+      "price2": {
+        "mode": "ofs",
+        "value": 2
+      }
+    },
+    "leverage": "20"
+  },
+  "dca": {
+    "enabled": false
+  },
+  "close": {
+    "enabled": true,
+    "price": "",
+    "action": "close"
+  },
+  "tp": {
+    "enabled": false,
+    "orderType": "limit"
+  }
+}
+
+
+     
+}} -ticker of the symbol used in alert (AAPL, BTCUSD, etc.).
+
+2. {{exchange}} -exchange of the symbol used in alert (NASDAQ, NYSE, CME, etc). Note that for delayed symbols, the exchange will end with “_DL” or “_DLY.” For example, “NYMEX_DL.”
+
+3. {{close}}, { { open} }, { { high} }, { { low} }, { { time} }, { { volume} }
+-corresponding values of the bar on which the alert has been triggered. Note that alerts on indicators, non-standard charts and drawings depends on a resolution, while simple price alerts (e.g., price crossing some value) are always calculated on 1-minute bars. {{time}} is in UTC, formatted as yyyy-MM-ddTHH:mm: ssZ.For example, 2019 - 08 - 27T09: 56:00Z.Other values are fixed-point numbers with a decimal point separating the integral and fractional parts. For example, 1245.25.
+
+4. {{timenow}} -current fire time of the alert, formatted in the same way as {{time}}. Return time to the nearest second, regardless of the resolutio
+
+}
+
+    {
+    "name": "LTC",
+
+  "secret": "qemmh9ajtvs",
+  "side": "{{strategy.order.action}}",
+  "positionSide": "{{strategy.market_position}}",
+  "symbol": "{{ticker}}",
+  "open": {
+        "enabled": true,
+    "amountType": "sumUsd",
+    "amount": "700",
+    "scaled": {
+            "qty": 2,
+      "price1": {
+                "mode": "ofs",
+        "value": 1
+      },
+      "price2": {
+                "mode": "ofs",
+        "value": 2
+      }
+        },
+    "leverage": "20"
+  },
+  "dca": {
+        "enabled": false
+  },
+  "close": {
+        "enabled": true,
+    "price": "",
+    "action": "close"
+  },
+  "tp": {
+        "enabled": false,
+    "orderType": "limit"
+  }
+}

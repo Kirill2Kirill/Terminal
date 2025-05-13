@@ -1,0 +1,218 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <title>Все логи</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        :root {
+            --bg-color: #f4f7fa;
+            --text-color: #2c3e50;
+            --card-bg: #ffffff;
+            --primary-color: #3498db;
+            --primary-hover: #2980b9;
+            --border-color: #e0e0e0;
+            --warning-bg: #fff3cd;
+            --error-bg: #f8d7da;
+            --error-text: #721c24;
+            --warning-text: #856404;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1f1f2f;
+                --text-color: #f0f0f0;
+                --card-bg: #2b2b40;
+                --primary-color: #3b82f6;
+                --primary-hover: #2563eb;
+                --border-color: #3c3c3c;
+                --warning-bg: #5b4b00;
+                --error-bg: #721c24;
+                --error-text: #f8d7da;
+                --warning-text: #fff3cd;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.6s ease;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 15px auto;
+            font-size: 16px;
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+            .button:hover {
+                background-color: var(--primary-hover);
+                transform: scale(1.03);
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 15px;
+        }
+
+        th, td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+            th.date, td.date {
+                width: 100px;
+                white-space: nowrap;
+            }
+
+            th.time, td.time {
+                width: 80px;
+                white-space: nowrap;
+            }
+
+        .warning {
+            background-color: var(--warning-bg);
+            color: var(--warning-text);
+            font-weight: 500;
+        }
+
+        .error {
+            background-color: var(--error-bg);
+            color: var(--error-text);
+            font-weight: 500;
+        }
+
+        .clickable {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+            .clickable:hover {
+                opacity: 0.85;
+            }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <form method="post" action="index">
+            <button type="submit" class="button">🏠 На главную</button>
+        </form>
+
+        <h1>📋 Все логи</h1>
+
+        <table id="logTable">
+            <thead>
+                <tr>
+                    <th class="date">Дата</th>
+                    <th class="time">Время</th>
+                    <th>Сообщение</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <form method="post" action="index">
+            <button type="submit" class="button">🏠 На главную</button>
+        </form>
+    </div>
+
+    <script>
+        async function loadLogs() {
+            try {
+                const response = await fetch("/api/logs");
+                const logs = await response.json();
+                const table = document.querySelector("#logTable tbody");
+
+                logs.forEach(log => {
+                    const row = document.createElement("tr");
+
+                    const dateCell = document.createElement("td");
+                    dateCell.textContent = log.date;
+                    dateCell.classList.add("date");
+                    row.appendChild(dateCell);
+
+                    const timeCell = document.createElement("td");
+                    timeCell.textContent = log.time;
+                    timeCell.classList.add("time");
+                    row.appendChild(timeCell);
+
+                    const messageCell = document.createElement("td");
+                    messageCell.textContent = log.message;
+                    messageCell.classList.add("clickable");
+
+                    if (log.level === "Warning") {
+                        messageCell.classList.add("warning");
+                    } else if (log.level === "Error") {
+                        messageCell.classList.add("error");
+                    }
+
+                    messageCell.addEventListener("click", () => {
+                        navigator.clipboard.writeText(`${log.date} ${log.time} | ${log.message}`);
+                        alert("Лог скопирован в буфер обмена.");
+                    });
+
+                    row.appendChild(messageCell);
+                    table.appendChild(row);
+                });
+            } catch (err) {
+                alert("Ошибка загрузки логов.");
+                console.error(err);
+            }
+        }
+
+        loadLogs();
+    </script>
+</body>
+</html>

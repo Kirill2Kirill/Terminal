@@ -1,0 +1,16 @@
+[
+  {
+    "Name": "Кирюша",
+    "ApiKey": "фыв",
+    "SecretKey": "не 123",
+    "Passphrase": "не фыв",
+    "HookKey": "не заданофыв"
+  },
+  {
+    "Name": "Миша",
+    "ApiKey": "не задано",
+    "SecretKey": "рдрж",
+    "Passphrase": "не задано",
+    "HookKey": "хуй"
+  }
+]
